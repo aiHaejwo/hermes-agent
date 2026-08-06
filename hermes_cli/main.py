@@ -2329,27 +2329,6 @@ def _launch_tui(
     sys.exit(code)
 
 
-def _pin_kanban_board_env() -> None:
-    """Pin the active kanban board into ``HERMES_KANBAN_BOARD`` for the chat session.
-
-    Without this, in-process tools (``kanban_*``) and shelled-out CLI calls
-    (``hermes kanban …``) resolve the board on different paths: the env-pin if
-    set, otherwise the global ``<root>/kanban/current`` file. A concurrent
-    ``hermes kanban boards switch`` from another session can flip the file
-    mid-turn, so the same chat sees its tool calls hit board A while its shell
-    calls hit board B (#20074). Pinning at chat boot mirrors what the
-    dispatcher already does for spawned workers.
-    """
-    if os.environ.get("HERMES_KANBAN_BOARD"):
-        return
-    try:
-        from hermes_cli.kanban_db import get_current_board
-
-        os.environ["HERMES_KANBAN_BOARD"] = get_current_board()
-    except Exception:
-        pass
-
-
 def _sync_bundled_skills_quietly() -> None:
     """Seed ``~/.hermes/skills/`` with the bundled skill library on first launch.
 
@@ -2571,8 +2550,6 @@ def cmd_chat(args):
     # --source: tag session source for filtering (e.g. 'tool' for third-party integrations)
     if getattr(args, "source", None):
         os.environ["HERMES_SESSION_SOURCE"] = args.source
-
-    _pin_kanban_board_env()
 
     if use_tui:
         _launch_tui(
@@ -4474,13 +4451,6 @@ def cmd_slack(args):
 
     print(f"Unknown slack subcommand: {sub}", file=sys.stderr)
     return 1
-
-
-def cmd_kanban(args):
-    """Multi-profile collaboration board."""
-    from hermes_cli.kanban import kanban_command
-
-    return kanban_command(args)
 
 
 def cmd_project(args):
@@ -13307,7 +13277,7 @@ _BUILTIN_SUBCOMMANDS = frozenset(
         "computer-use",
         "config", "console", "cron", "curator", "dashboard", "serve", "debug", "doctor",
         "dump", "fallback", "gateway", "hooks", "import", "insights",
-        "gui", "desktop", "kanban", "login", "logout", "logs", "lsp", "mcp", "memory", "migrate", "moa",
+        "gui", "desktop", "login", "logout", "logs", "lsp", "mcp", "memory", "migrate", "moa",
         "journey", "memory-graph", "learning",
         "model", "pairing", "pets", "plugins", "portal", "profile",
         "project", "proxy",
@@ -14077,14 +14047,6 @@ def main():
     # =========================================================================
     from hermes_cli.portal_cli import add_parser as _add_portal_parser
     _add_portal_parser(subparsers)
-
-    # =========================================================================
-    # kanban command — multi-profile collaboration board
-    # =========================================================================
-    from hermes_cli.kanban import build_parser as _build_kanban_parser
-
-    kanban_parser = _build_kanban_parser(subparsers)
-    kanban_parser.set_defaults(func=cmd_kanban)
 
     # =========================================================================
     # project command — named, multi-folder workspaces

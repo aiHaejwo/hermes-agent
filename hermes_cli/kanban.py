@@ -3012,9 +3012,7 @@ Read-only commands are safe while an agent is running.\
 def run_slash(rest: str) -> str:
     """Execute a ``/kanban …`` string and return captured stdout/stderr.
 
-    ``rest`` is everything after ``/kanban`` (may be empty).  Used from
-    both the interactive CLI (``self._handle_kanban_command``) and the
-    gateway (``_handle_kanban_command``) so formatting is identical.
+    ``rest`` is everything after the command name (may be empty).
     """
     import io
     import contextlib
