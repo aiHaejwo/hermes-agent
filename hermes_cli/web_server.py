@@ -19003,6 +19003,7 @@ async def get_dashboard_plugins():
     # Read user's hidden plugins list from config.
     config = load_config()
     hidden: list = cfg_get(config, "dashboard", "hidden_plugins", default=[]) or []
+    hidden = [*hidden, "kanban"]
     # Gate: only serve user plugins that are in plugins.enabled and not
     # in plugins.disabled.  This prevents the frontend from loading JS/CSS
     # from plugins the user has not explicitly activated.  (#46435)
@@ -19074,6 +19075,7 @@ def _merged_plugins_hub() -> Dict[str, Any]:
     # Read user-hidden plugins from config for the user_hidden field.
     config = load_config()
     hidden_plugins: list = cfg_get(config, "dashboard", "hidden_plugins", default=[]) or []
+    hidden_plugins = [*hidden_plugins, "kanban"]
 
     plugins_root_resolved = (get_hermes_home() / "plugins").resolve()
     rows: List[Dict[str, Any]] = []
